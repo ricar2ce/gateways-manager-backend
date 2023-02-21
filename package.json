@@ -1,0 +1,41 @@
+{
+  "name": "gateway-manager",
+  "version": "1.0.0",
+  "description": "REST service for storing information about gateways and their associated devices",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env NODE_ENV=production node index.js",
+    "dev": "cross-env NODE_ENV=development nodemon index.js",
+    "test": "mocha --recursive tests/**/*.test.js",
+    "lint": "npm run lint:js"
+  },
+  "keywords": [
+    "gateway",
+    "REST",
+    "API",
+    "MongoDB",
+    "Node.js"
+  ],
+  "author": "Tu nombre aquí",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "joi": "^17.8.1",
+    "mongoose": "^6.9.2",
+    "supertest": "^6.3.3"
+  },
+  "devDependencies": {
+    "mocha": "^10.2.0",
+    "chai": "^4.3.7",
+    "eslint": "^8.34.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "nodemon": "^2.0.20"
+  },
+  "eslintConfig": {
+    "extends": "airbnb-base"
+  }
+}
