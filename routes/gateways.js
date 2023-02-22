@@ -1,5 +1,6 @@
 const express = require('express');
 const Joi = require('joi');
+const _ = require('lodash');
 const Gateway = require('../models/gateway');
 
 const router = express.Router();
@@ -25,9 +26,9 @@ const gatewaySchema = Joi.object({
 router.get('/', async (req, res) => {
   try {
     const gateways = await Gateway.find();
-    return res.json(gateways);
+    return res.status(200).json({ success: true, data: gateways });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -36,13 +37,12 @@ router.get('/:serialNumber', async (req, res) => {
   try {
     const gateway = await Gateway.findOne({ serialNumber: req.params.serialNumber });
     if (!gateway) {
-      return res.status(404).json({ message: 'Gateway not found' });
+      return res.status(404).json({ success: false, message: 'Gateway not found' });
     }
-    res.json(gateway);
+    return res.status(200).json({ success: true, data: gateway });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
-  return res;
 });
 
 // Route to create a new gateway
@@ -56,6 +56,7 @@ router.post('/', async (req, res) => {
     if (error) {
       // If there is an error in the validation, it returns a 400 error
       return res.status(400).json({
+        success: false,
         message: error.details[0].message,
         error: error.details[0].message,
       });
@@ -66,13 +67,13 @@ router.post('/', async (req, res) => {
     }).exec();
 
     if (gatewayExists) {
-      return res.status(400).json({ message: 'Gateway already exists' });
+      return res.status(400).json({ success: false, message: 'Gateway already exists' });
     }
 
-    const newGateway = await Gateway.create(gateway);
-    return res.status(201).json(newGateway);
+    await Gateway.create(gateway);
+    return res.status(201).json({ success: true, message: 'Gateway created successfully' });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ success: false, message: error.message });
   }
 });
 
@@ -82,11 +83,17 @@ router.put('/:serialNumber', async (req, res) => {
     const gateway = await Gateway.findOne({ serialNumber: req.params.serialNumber });
 
     if (!gateway) {
-      return res.status(404).json({ message: 'Gateway not found' });
+      return res.status(404).json({ success: false, message: 'Gateway not found' });
     }
 
     const updateGateway = req.body;
-    updateGateway.serialNumber = req.params.serialNumber;
+    // updateGateway.serialNumber = req.params.serialNumber;
+
+    // Only the uid, vendor and status fields are allowed to be updated
+    if (updateGateway.peripheralDevices) {
+      const peripheralDevicesData = updateGateway.peripheralDevices;
+      updateGateway.peripheralDevices = peripheralDevicesData.map((device) => _.pick(device, ['uid', 'vendor', 'status', 'dateCreated']));
+    }
 
     // Validates that the request complies with the defined validation scheme
     const { error } = gatewaySchema.validate(updateGateway);
@@ -94,6 +101,7 @@ router.put('/:serialNumber', async (req, res) => {
     if (error) {
       // If there is an error in the validation, it returns a 400 error
       return res.status(400).json({
+        success: false,
         message: error.details[0].message,
         error: error.details[0].message,
       });
@@ -104,9 +112,9 @@ router.put('/:serialNumber', async (req, res) => {
     });
     await gateway.save();
 
-    return res.json(gateway);
+    return res.status(200).json({ success: true, message: 'Gateway updated successfully' });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ success: false, message: error.message });
   }
 });
 
@@ -115,12 +123,12 @@ router.delete('/:serialNumber', async (req, res) => {
   try {
     const gateway = await Gateway.findOne({ serialNumber: req.params.serialNumber });
     if (!gateway) {
-      return res.status(404).json({ message: 'Gateway not found' });
+      return res.status(404).json({ success: false, message: 'Gateway not found' });
     }
     await gateway.remove();
-    return res.status(200).json({ serialNumber: req.params.serialNumber });
+    return res.status(200).json({ success: true, serialNumber: req.params.serialNumber });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -137,9 +145,9 @@ router.post('/:serial/devices', async (req, res) => {
 
     // Guarda el gateway actualizado en la base de datos
     await gateway.save();
-    return res.status(201).json(gateway);
+    return res.status(201).json({ success: true, gateway });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ success: false, message: error.message });
   }
 });
 
@@ -152,12 +160,12 @@ router.delete('/:serial/devices/:uid', async (req, res) => {
     );
 
     if (gateway.nModified === 1) {
-      return res.status(204).send();
+      return res.status(204).send({ success: true, message: 'Gateway deleted successfully' });
     }
 
-    return res.status(404).json({ message: 'Device not found' });
+    return res.status(404).json({ success: false, message: 'Device not found' });
   } catch (error) {
-    return res.status(500).json({ message: error.message });
+    return res.status(500).json({ success: false, message: error.message });
   }
 });
 

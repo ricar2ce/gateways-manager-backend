@@ -30,6 +30,10 @@ db.on('error', console.error.bind(console, '❌ mongodb connection error'));
 
 db.once('open', () => {
   console.log('✅ mongodb connected successfully!');
+  db.collection('gateways').createIndex(
+    { 'peripheralDevices.uid': 1 },
+    { unique: true, partialFilterExpression: { 'peripheralDevices.uid': { $exists: true } } },
+  );
 });
 
 mongoose.Promise = Promise;
