@@ -126,7 +126,7 @@ router.delete('/:serialNumber', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Gateway not found' });
     }
     await gateway.remove();
-    return res.status(200).json({ success: true, serialNumber: req.params.serialNumber });
+    return res.status(200).json({ success: true, message: 'Gateway deleted successfully' });
   } catch (error) {
     return res.status(500).json({ success: false, message: error.message });
   }
