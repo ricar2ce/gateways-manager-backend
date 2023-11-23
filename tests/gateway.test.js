@@ -7,7 +7,7 @@ const Gateway = require('../models/gateway');
 describe('Gateway API', () => {
   before(async () => {
     // Connect to the test database
-    const MONGODB_URI = 'mongodb://localhost:27017/gateway-manager-test';
+    const MONGODB_URI = 'mongodb://127.0.0.1:27017/gateway-manager-test';
     await mongoose.connect(MONGODB_URI, {
       useUnifiedTopology: true,
       useNewUrlParser: true,
@@ -28,9 +28,8 @@ describe('Gateway API', () => {
         .send({ serialNumber: 'GATEWAY001', name: 'Gateway 1', ipv4Address: '192.168.1.1' });
       assert.equal(res.statusCode, 201);
       assert.isNotNull(res.body);
-      assert.equal(res.body.serialNumber, 'GATEWAY001');
-      assert.equal(res.body.name, 'Gateway 1');
-      assert.equal(res.body.ipv4Address, '192.168.1.1');
+      assert.equal(res.body.success, true);
+      assert.equal(res.body.message, 'Gateway created successfully');
     });
 
     it('should return an error for missing fields', async () => {
@@ -46,14 +45,14 @@ describe('Gateway API', () => {
     it('should return all gateways', async () => {
       const res = await request(app).get('/api/gateways');
       assert.equal(res.statusCode, 200);
-      assert.isArray(res.body);
-      assert.lengthOf(res.body, 1);
-      assert.equal(res.body[0].serialNumber, 'GATEWAY001');
-      assert.equal(res.body[0].name, 'Gateway 1');
-      assert.equal(res.body[0].ipv4Address, '192.168.1.1');
-      assert.property(res.body[0], 'peripheralDevices');
-      assert.isArray(res.body[0].peripheralDevices);
-      assert.lengthOf(res.body[0].peripheralDevices, 0);
+      assert.isArray(res.body.data);
+      assert.lengthOf(res.body.data, 1);
+      assert.equal(res.body.data[0].serialNumber, 'GATEWAY001');
+      assert.equal(res.body.data[0].name, 'Gateway 1');
+      assert.equal(res.body.data[0].ipv4Address, '192.168.1.1');
+      assert.property(res.body.data[0], 'peripheralDevices');
+      assert.isArray(res.body.data[0].peripheralDevices);
+      assert.lengthOf(res.body.data[0].peripheralDevices, 0);
     });
   });
 
@@ -63,12 +62,13 @@ describe('Gateway API', () => {
         .get('/api/gateways/GATEWAY001');
       assert.equal(res.statusCode, 200);
       assert.isNotNull(res.body);
-      assert.equal(res.body.serialNumber, 'GATEWAY001');
-      assert.equal(res.body.name, 'Gateway 1');
-      assert.equal(res.body.ipv4Address, '192.168.1.1');
-      assert.property(res.body, 'peripheralDevices');
-      assert.isArray(res.body.peripheralDevices);
-      assert.lengthOf(res.body.peripheralDevices, 0);
+      assert.equal(res.body.success, true);
+      assert.equal(res.body.data.serialNumber, 'GATEWAY001');
+      assert.equal(res.body.data.name, 'Gateway 1');
+      assert.equal(res.body.data.ipv4Address, '192.168.1.1');
+      assert.property(res.body.data, 'peripheralDevices');
+      assert.isArray(res.body.data.peripheralDevices);
+      assert.lengthOf(res.body.data.peripheralDevices, 0);
     });
 
     it('should return an error for a nonexistent gateway', async () => {
@@ -109,7 +109,8 @@ describe('Gateway API', () => {
         .delete('/api/gateways/GATEWAY001');
       assert.equal(res.statusCode, 200);
       assert.isNotNull(res.body);
-      assert.equal(res.body.serialNumber, 'GATEWAY001');
+      assert.equal(res.body.success, true);
+      assert.equal(res.body.message, 'Gateway deleted successfully');
     });
 
     it('should return an error for a nonexistent gateway', async () => {

@@ -87,7 +87,7 @@ router.put('/:serialNumber', async (req, res) => {
     }
 
     const updateGateway = req.body;
-    // updateGateway.serialNumber = req.params.serialNumber;
+    updateGateway.serialNumber = req.params.serialNumber;
 
     // Only the uid, vendor and status fields are allowed to be updated
     if (updateGateway.peripheralDevices) {
